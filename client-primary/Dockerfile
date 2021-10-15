@@ -2,18 +2,18 @@
 # import the python image (from DockerHub).
 FROM python:latest
 
-# In order to launch our python code, we must import the 'server-sec1.py' and 'index.html' file.
-# The second parameter '/server-sec1/' is the path where to put the file on the image.
-COPY /server-sec1/server-sec1.py /server-sec1/
-COPY /server-sec1/requirements.txt /server-sec1/
-COPY /proto/replicated-log.proto /server-sec1/
-COPY /proto/replicated_log_pb2.py /server-sec1/
-COPY /proto/replicated_log_pb2_grpc.py /server-sec1/
+# In order to launch our python code, we must import the 'client-primary.py'\
+# The second parameter '/client-primary/' is the path where to put the file on the image.
+COPY /client-primary/client-primary.py /client-primary/
+COPY /client-primary/requirements.txt /client-primary/
+COPY /proto/replicated-log.proto /client-primary/
+COPY /proto/replicated_log_pb2.py /client-primary/
+COPY /proto/replicated_log_pb2_grpc.py /client-primary/
 
 
 # This command changes the base directory of your image.
-# Here we define '/server/' as base directory (where all commands will be executed).
-WORKDIR /server-sec1/
+# Here we define '/client-rimary/' as base directory.
+WORKDIR /client-primary/
 
 # Install the function's dependencies
 RUN  pip3 install -r requirements.txt
