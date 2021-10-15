@@ -1,12 +1,48 @@
-#!/usr/bin/env python3
+import logging, os, sys, threading, grpc
+from concurrent import futures
+from flask import Flask
+from flask_restful import reqparse, Api, Resource
 
-import http.server
-import socketserver
+sys.path.append(os.path.abspath('../proto'))
+import replicated_log_pb2 as pb2, replicated_log_pb2_grpc as pb2_grpc
 
-# This variable is going to handle the requests of our client on the server.
-handler = http.server.SimpleHTTPRequestHandler
+""" HTTP server (Flask) with REST API endpoint """
+app = Flask(__name__)
+api = Api(app)
+parser = reqparse.RequestParser()
 
-# Here we define that we want to start the server on port 1234.
-with socketserver.TCPServer(("", 1234), handler) as httpd:
-    # This instruction will keep the server running, waiting for requests from the client.
-    httpd.serve_forever()
+class MessageList(Resource):
+    def get(self):
+        print(f"Current messages on this server: {MESSAGES}")
+        return MESSAGES
+api.add_resource(MessageList, '/messages')
+
+def http_app():
+    print("====== Start HTTP server  ======")
+    app.run()
+
+""" gRCP server """
+class ReplicatedLogServicer(pb2_grpc.ReplicatedLogServicer):
+    def ReplicateMessages(self, message, context):
+        print(f"got message from Primary: {message.message}")
+        MESSAGES.append(message.message)
+        return pb2.ReplicateMessagesAck(response="ACK")
+
+def rcp_app():
+    logging.basicConfig()
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    pb2_grpc.add_ReplicatedLogServicer_to_server(
+        ReplicatedLogServicer(), server)
+    server.add_insecure_port('[::]:50051')
+    print("====== Start gRCP server ======")
+    server.start()
+    server.wait_for_termination()
+
+""" List to store messages """
+MESSAGES = []
+
+if __name__ == '__main__':
+    t1 = threading.Thread(target=http_app)
+    t2 = threading.Thread(target=rcp_app)
+    t1.start()
+    t2.start()
