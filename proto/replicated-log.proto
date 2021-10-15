@@ -3,10 +3,7 @@ package replicated_log;
 
 // Interface exported by the server.
 service ReplicatedLog {
-  rpc ReplicateMessages(ReplicateMessagesRequest) returns (ReplicateMessagesAck) {}
-
-  rpc GetMessages(GetMessagesRequest) returns (ListsOfMessages) {}
-}
+  rpc ReplicateMessages(ReplicateMessagesRequest) returns (ReplicateMessagesAck) {}}
 
 message ReplicateMessagesRequest {
   string message=1;
@@ -14,12 +11,4 @@ message ReplicateMessagesRequest {
 
 message ReplicateMessagesAck {
   string response=1;
-}
-
-message GetMessagesRequest {
-  string req=1;
-}
-
-message ListsOfMessages {
-  repeated string ListOfMessages=1;
 }
