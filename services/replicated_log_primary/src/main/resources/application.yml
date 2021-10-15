@@ -1,0 +1,23 @@
+quarkus:
+  # HTTP configuration.
+  http:
+    port: ${PORT:9090}
+
+  # OpenAPI configuration.
+  smallrye-openapi:
+    info-title: Replicated Log Primary Node API
+    info-version: 1.0.0
+    info-description: Replicated Log Primary Node API
+
+  swagger-ui:
+    always-include: true
+    path: /api/docs
+
+  grpc:
+    clients:
+      secondary-1:
+        host: ${SECONDARY_1_HOST:0.0.0.0}
+        port: ${SECONDARY_1_PORT:9091}
+      secondary-2:
+        host: ${SECONDARY_2_HOST:0.0.0.0}
+        port: ${SECONDARY_2_PORT:9092}

@@ -1,0 +1,6 @@
+# Gradle
+.gradle/
+build/
+
+# Proto files
+src/main/proto

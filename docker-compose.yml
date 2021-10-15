@@ -1,0 +1,21 @@
+version: "3"
+
+networks:
+  replicated_log_network:
+    external: false
+
+services:
+  replicated_log_primary:
+    build:
+      context: .
+      dockerfile: services/replicated_log_primary/Dockerfile
+      args:
+        PORT: 9090
+
+    ports:
+      - "9090:9090"
+
+    networks:
+      - replicated_log_network
+
+    restart: unless-stopped
