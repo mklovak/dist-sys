@@ -16,8 +16,13 @@ $ cp "$(eval git rev-parse --show-toplevel)/proto/replicated-log.proto" src/main
 
 Run this application in dev mode with live reload using:
 
+> Make sure to configure secondary nodes via such environment variables:
+> - `SECONDARY_<number>_ENABLED` - whether node is enabled (should be set to `true`, **required**)
+> - `SECONDARY_<number>_PORT` - node port (e.g. `50051`, **required**)
+> - `SECONDARY_<number>_HOST` - node host (e.g. `172.16.1.1`, `0.0.0.0` is set by default)
+
 ```shell script
-$ ./gradlew quarkusDev
+$ SECONDARY_1_ENABLED=true SECONDARY_1_PORT=50051 ./gradlew quarkusDev
 ```
 
 > **Dev UI** is available in dev mode only at http://localhost:9090/q/dev/
