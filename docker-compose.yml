@@ -9,7 +9,7 @@ services:
         PORT: 9090
 
     environment:
-      SECONDARY_1_ENABLED: false
+      SECONDARY_1_ENABLED: true
       SECONDARY_1_HOST: host.docker.internal
       SECONDARY_1_PORT: 50052
       SECONDARY_2_ENABLED: true

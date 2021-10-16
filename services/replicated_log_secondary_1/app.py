@@ -1,20 +1,21 @@
 import asyncio
-import grpc
-import time
 
+import grpc
 from aiohttp import web
 from grpc.experimental.aio import init_grpc_aio
 
 from proto.replicated_log_pb2 import ReplicateMessageResponse
-from proto.replicated_log_pb2_grpc import add_ReplicatedLogServicer_to_server
 from proto.replicated_log_pb2_grpc import ReplicatedLogServicer
+from proto.replicated_log_pb2_grpc import add_ReplicatedLogServicer_to_server
 
 """ List to store messages """
 MESSAGES = []
 
+
 class MessagesView(web.View):
     async def get(self):
         return web.Response(text=str(MESSAGES))
+
 
 class Application(web.Application):
     def __init__(self):
