@@ -1,9 +1,5 @@
 version: "3"
 
-networks:
-  replicated_log_network:
-    external: false
-
 services:
   replicated_log_primary:
     build:
@@ -12,17 +8,16 @@ services:
       args:
         PORT: 9090
 
-        SECONDARY_1_ENABLED: false
-        SECONDARY_1_PORT: 50052
-
-        SECONDARY_2_ENABLED: true
-        SECONDARY_2_PORT: 50053
+    environment:
+      SECONDARY_1_ENABLED: false
+      SECONDARY_1_HOST: host.docker.internal
+      SECONDARY_1_PORT: 50052
+      SECONDARY_2_ENABLED: true
+      SECONDARY_2_HOST: host.docker.internal
+      SECONDARY_2_PORT: 50053
 
     ports:
       - "9090:9090"
-
-    networks:
-      - replicated_log_network
 
     depends_on:
       - replicated_log_secondary_1
@@ -39,9 +34,6 @@ services:
       - "9091:5000"
       - "50052:50051"
 
-    networks:
-      - replicated_log_network
-
     restart: unless-stopped
 
   replicated_log_secondary_test:
@@ -51,8 +43,5 @@ services:
 
     ports:
       - "50053:50051"
-
-    networks:
-      - replicated_log_network
 
     restart: unless-stopped
