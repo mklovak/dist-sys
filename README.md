@@ -9,6 +9,16 @@ techniques.
 
 > **Reference:** https://docs.google.com/document/d/13akys1yQKNGqV9dGzSEDCGbHPDiKmqsZFOxKhxz841U/edit
 
+### Running
+
+> **Make sure to install [Docker Compose](https://docs.docker.com/compose/install/)**
+
+Run this distributed application using such command:
+
+```shell command
+$ docker-compose up
+```
+
 ### Deployment Architecture & Assumptions
 
 * **1** Primary node, **N** (any number) Secondary nodes
