@@ -49,6 +49,9 @@ $ docker build -t replicated_log_secondary_1 -f services/replicated_log_secondar
 $ docker run -i --rm -p 9091:5000 -p 50052:50051 replicated_log_secondary_1
 ```
 
+## HTTP API
+`http://0.0.0.0:5000/messages`
+
 ## Known issues with gRPC for Python
 Problems with one generated module importing another generated module:
 https://github.com/grpc/grpc/issues/9450
