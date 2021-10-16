@@ -9,6 +9,8 @@ function ReplicateMessage(ctx) {
 const app = new Mali('proto/replicated-log.proto');
 app.use({ReplicateMessage});
 
-const host = '0.0.0.0:50051';
-console.log(`Started listening on '${host}'...`);
-app.start(host);
+(async () => {
+    const host = '0.0.0.0:50051';
+    console.log(`Started listening on '${host}'...`);
+    await app.start(host);
+})();
