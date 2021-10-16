@@ -1,22 +1,58 @@
 version: "3"
 
-services:
-  server-sec1:
-    build:
-      context: ./
-      dockerfile: server-sec1/Dockerfile
-    command: python ./server-sec1.py
-    
-    ports:
-      - 50051:50051
+networks:
+  replicated_log_network:
+    external: false
 
-  client-primary:
+services:
+  replicated_log_primary:
     build:
-      context: ./
-      dockerfile: client-primary/Dockerfile
-    command: python ./client-primary.py
-    
-    network_mode: host
+      context: .
+      dockerfile: services/replicated_log_primary/Dockerfile
+      args:
+        PORT: 9090
+
+        SECONDARY_1_ENABLED: false
+        SECONDARY_1_PORT: 50052
+
+        SECONDARY_2_ENABLED: true
+        SECONDARY_2_PORT: 50053
+
+    ports:
+      - "9090:9090"
+
+    networks:
+      - replicated_log_network
 
     depends_on:
-      - server-sec1
+      - replicated_log_secondary_1
+      - replicated_log_secondary_test
+
+    restart: unless-stopped
+
+  replicated_log_secondary_1:
+    build:
+      context: .
+      dockerfile: services/replicated_log_secondary_1/Dockerfile
+
+    ports:
+      - "9091:5000"
+      - "50052:50051"
+
+    networks:
+      - replicated_log_network
+
+    restart: unless-stopped
+
+  replicated_log_secondary_test:
+    build:
+      context: .
+      dockerfile: services/replicated_log_secondary_test/Dockerfile
+
+    ports:
+      - "50053:50051"
+
+    networks:
+      - replicated_log_network
+
+    restart: unless-stopped

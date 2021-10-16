@@ -1,14 +1,20 @@
 syntax = "proto3";
+
+// Java options needed for replicated_log_primary service to generate gRPC files.
+option java_multiple_files = true;
+option java_package = "com.sadliak.grpc";
+option java_outer_classname = "ReplicatedLogProto";
+
 package replicated_log;
 
-// Interface exported by the server.
 service ReplicatedLog {
-  rpc ReplicateMessages(ReplicateMessagesRequest) returns (ReplicateMessagesAck) {}}
-
-message ReplicateMessagesRequest {
-  string message=1;
+  rpc ReplicateMessage(ReplicateMessageRequest) returns (ReplicateMessageResponse) {}
 }
 
-message ReplicateMessagesAck {
-  string response=1;
+message ReplicateMessageRequest {
+  string message = 1;
+}
+
+message ReplicateMessageResponse {
+  string response = 1;
 }
