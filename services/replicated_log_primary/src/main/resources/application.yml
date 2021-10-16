@@ -17,7 +17,7 @@ quarkus:
     clients:
       secondary-1:
         host: ${SECONDARY_1_HOST:0.0.0.0}
-        port: ${SECONDARY_1_PORT:9091}
+        port: ${SECONDARY_1_PORT:50052}
       secondary-2:
         host: ${SECONDARY_2_HOST:0.0.0.0}
-        port: ${SECONDARY_2_PORT:9092}
+        port: ${SECONDARY_2_PORT:50053}
