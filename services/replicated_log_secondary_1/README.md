@@ -1,6 +1,6 @@
 # Replicated Log Secondary Node 1
 
-This project uses Flask and Python gRPC Tools.
+This project uses aiohttp and Python gRPC Tools.
 
 ## Development
 
