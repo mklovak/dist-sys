@@ -1,0 +1,5 @@
+# Proto files
+proto/*.proto
+
+# Node
+node_modules
