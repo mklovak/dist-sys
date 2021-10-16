@@ -48,3 +48,9 @@ $ docker build -t replicated_log_secondary_1 -f services/replicated_log_secondar
 ```shell script
 $ docker run -i --rm -p 9091:5000 -p 50052:50051 replicated_log_secondary_1
 ```
+
+## Known issues with gRPC for Python
+Problems with one generated module importing another generated module:
+https://github.com/grpc/grpc/issues/9450
+
+Fix would be to modify imoprt statement in pb2_grpc.py to `from . import replicated_log_pb2 as replicated__log__pb2` 
