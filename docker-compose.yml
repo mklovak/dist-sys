@@ -11,9 +11,27 @@ services:
       dockerfile: services/replicated_log_primary/Dockerfile
       args:
         PORT: 9090
+        SECONDARY_1_PORT: 50052
 
     ports:
       - "9090:9090"
+
+    networks:
+      - replicated_log_network
+
+    depends_on:
+      - replicated_log_secondary_1
+
+    restart: unless-stopped
+
+  replicated_log_secondary_1:
+    build:
+      context: .
+      dockerfile: services/replicated_log_secondary_1/Dockerfile
+
+    ports:
+      - "9091:5000"
+      - "50052:50051"
 
     networks:
       - replicated_log_network
