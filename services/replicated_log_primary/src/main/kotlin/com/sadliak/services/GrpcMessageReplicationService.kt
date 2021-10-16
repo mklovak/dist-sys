@@ -1,20 +1,20 @@
 package com.sadliak.services
 
+import com.sadliak.config.ReplicationConfig
 import com.sadliak.exceptions.AppException
 import com.sadliak.grpc.MutinyReplicatedLogGrpc
 import com.sadliak.grpc.ReplicateMessageRequest
 import com.sadliak.models.Message
 import io.grpc.ManagedChannelBuilder
-import io.quarkus.grpc.runtime.config.GrpcClientConfiguration
-import io.quarkus.grpc.runtime.config.GrpcConfiguration
 import io.smallrye.mutiny.Uni
 import javax.enterprise.context.ApplicationScoped
 
 
 @ApplicationScoped
-class GrpcMessageReplicationService(private val grpcConfiguration: GrpcConfiguration) : MessageReplicationService {
+class GrpcMessageReplicationService(private val replicationConfig: ReplicationConfig) : MessageReplicationService {
 
-    private val secondaryGrpcClients = this.grpcConfiguration.clients
+    private val secondaryGrpcClients = this.replicationConfig.nodes()
+            .filter { (_, config) -> config.isEnabled() }
             .map { (name, config) -> name to this.buildGrpcClient(config) }
             .toMap()
 
@@ -30,9 +30,9 @@ class GrpcMessageReplicationService(private val grpcConfiguration: GrpcConfigura
         }
     }
 
-    private fun buildGrpcClient(clientConfig: GrpcClientConfiguration): MutinyReplicatedLogGrpc.MutinyReplicatedLogStub {
+    private fun buildGrpcClient(nodeConfig: ReplicationConfig.Node): MutinyReplicatedLogGrpc.MutinyReplicatedLogStub {
         return MutinyReplicatedLogGrpc.newMutinyStub(
-                ManagedChannelBuilder.forAddress(clientConfig.host, clientConfig.port)
+                ManagedChannelBuilder.forAddress(nodeConfig.host(), nodeConfig.port())
                         .usePlaintext()
                         .build()
         )
