@@ -21,7 +21,7 @@ services:
 
     depends_on:
       - replicated_log_secondary_1
-      - replicated_log_secondary_test
+      - replicated_log_secondary_2
 
     restart: unless-stopped
 
@@ -33,16 +33,6 @@ services:
     ports:
       - "9091:5000"
       - "50052:50051"
-
-    restart: unless-stopped
-
-  replicated_log_secondary_test:
-    build:
-      context: .
-      dockerfile: services/replicated_log_secondary_test/Dockerfile
-
-    ports:
-      - "50053:50051"
 
     restart: unless-stopped
 
