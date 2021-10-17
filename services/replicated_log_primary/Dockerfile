@@ -7,7 +7,7 @@ WORKDIR $APP_HOME
 # Folder paths are set according to the repository root folder.
 
 COPY services/replicated_log_primary/src $APP_HOME/src
-COPY proto/replicated-log.proto $APP_HOME/src/main/proto
+COPY proto/replicated-log.proto $APP_HOME/src/main/proto/
 COPY services/replicated_log_primary/*.gradle.kts $APP_HOME
 COPY services/replicated_log_primary/gradle.properties $APP_HOME
 
