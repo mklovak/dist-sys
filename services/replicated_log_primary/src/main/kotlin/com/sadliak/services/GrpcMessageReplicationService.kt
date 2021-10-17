@@ -13,17 +13,20 @@ import javax.enterprise.context.ApplicationScoped
 @ApplicationScoped
 class GrpcMessageReplicationService(private val replicationConfig: ReplicationConfig) : MessageReplicationService {
 
-    private val secondaryGrpcClients = this.replicationConfig.nodes()
-            .filter { (_, config) -> config.isEnabled() }
+    private val secondaryGrpcClients = this.replicationConfig.enabledNodes()
             .map { (name, config) -> name to this.buildGrpcClient(config) }
             .toMap()
 
     override fun replicateMessage(message: Message) {
+        if (this.secondaryGrpcClients.isEmpty()) {
+            throw AppException("There are no secondary nodes to replicate messages to")
+        }
+
         try {
             val replicationRequest = ReplicateMessageRequest.newBuilder().setMessage(message.text).build()
 
             Uni.join().all(
-                    secondaryGrpcClients.values.map { grpcClient -> grpcClient.replicateMessage(replicationRequest) }
+                    this.secondaryGrpcClients.values.map { grpcClient -> grpcClient.replicateMessage(replicationRequest) }
             ).andCollectFailures().await().indefinitely()
         } catch (e: Throwable) {
             throw AppException("Error while replicating message to secondary nodes", cause = e)
@@ -32,7 +35,8 @@ class GrpcMessageReplicationService(private val replicationConfig: ReplicationCo
 
     private fun buildGrpcClient(nodeConfig: ReplicationConfig.Node): MutinyReplicatedLogGrpc.MutinyReplicatedLogStub {
         return MutinyReplicatedLogGrpc.newMutinyStub(
-                ManagedChannelBuilder.forAddress(nodeConfig.host(), nodeConfig.port())
+                ManagedChannelBuilder
+                        .forAddress(nodeConfig.host, nodeConfig.port)
                         .usePlaintext()
                         .build()
         )

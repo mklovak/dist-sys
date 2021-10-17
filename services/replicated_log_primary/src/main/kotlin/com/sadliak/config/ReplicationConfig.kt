@@ -1,14 +1,41 @@
 package com.sadliak.config
 
-import io.smallrye.config.ConfigMapping
+import io.quarkus.runtime.Startup
+import javax.enterprise.context.ApplicationScoped
 
-@ConfigMapping(prefix = "replication")
-interface ReplicationConfig {
-    fun nodes(): Map<String, Node>
+@Startup
+@ApplicationScoped
+class ReplicationConfig {
+    private val nodes: Map<String, Node>
 
-    interface Node {
-        fun isEnabled(): Boolean
-        fun host(): String
-        fun port(): Int
+    fun enabledNodes(): Map<String, Node> {
+        return this.nodes.filter { it.value.isEnabled }
     }
+
+    init {
+        val regex = Regex("(SECONDARY_\\d+)_(HOST|PORT|ENABLED)")
+        this.nodes = System.getenv().entries
+                .map { (name, value) -> regex.matchEntire(name)?.groupValues to value }
+                .filter { (nameRegexGroups) -> nameRegexGroups != null }
+                .map { (nameRegexGroups, value) ->
+                    val nodeName = nameRegexGroups!![1].lowercase()
+                    val nodeProperty = object {
+                        val property = nameRegexGroups[2].lowercase()
+                        val value = value
+                    }
+
+                    nodeName to nodeProperty
+                }
+                .groupBy { (nodeName) -> nodeName }
+                .mapValues { (_, values) ->
+                    val nodeProperties = values.map { it.second }
+                    val host = nodeProperties.find { it.property == "host" }?.value ?: "0.0.0.0"
+                    val port = nodeProperties.find { it.property == "port" }?.value?.toIntOrNull() ?: -1
+                    val isEnabled = nodeProperties.find { it.property == "enabled" }?.value?.toBoolean() ?: false
+
+                    Node(isEnabled, host, port)
+                }
+    }
+
+    data class Node(val isEnabled: Boolean, val host: String, val port: Int)
 }

@@ -12,14 +12,3 @@ quarkus:
   swagger-ui:
     always-include: true
     path: /api/docs
-
-replication:
-  nodes:
-    secondary-1:
-      is-enabled: ${SECONDARY_1_ENABLED:false}
-      host: ${SECONDARY_1_HOST:0.0.0.0}
-      port: ${SECONDARY_1_PORT:50052}
-    secondary-2:
-      is-enabled: ${SECONDARY_2_ENABLED:false}
-      host: ${SECONDARY_2_HOST:0.0.0.0}
-      port: ${SECONDARY_2_PORT:50053}
