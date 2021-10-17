@@ -9,12 +9,12 @@ services:
         PORT: 9090
 
     environment:
-      SECONDARY_1_ENABLED: true
+      SECONDARY_1_ENABLED: "true"
       SECONDARY_1_HOST: host.docker.internal
       SECONDARY_1_PORT: 50052
-      SECONDARY_2_ENABLED: true
+      SECONDARY_2_ENABLED: "true"
       SECONDARY_2_HOST: host.docker.internal
-      SECONDARY_2_PORT: 50053
+      SECONDARY_2_PORT: 8889
 
     ports:
       - "9090:9090"
@@ -43,5 +43,16 @@ services:
 
     ports:
       - "50053:50051"
+
+    restart: unless-stopped
+
+  replicated_log_secondary_2:
+    build:
+      context: .
+      dockerfile: services/replicated_log_secondary_2/Dockerfile
+
+    ports:
+      - "8888:8080" # API
+      - "8889:8081" # GRPC
 
     restart: unless-stopped
