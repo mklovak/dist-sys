@@ -9,6 +9,12 @@ techniques.
 
 > **Reference:** https://docs.google.com/document/d/13akys1yQKNGqV9dGzSEDCGbHPDiKmqsZFOxKhxz841U/edit
 
+### Lucky Team Members
+
+* [@sadliak](https://github.com/sadliak) - primary node (`replicated_log_primary` service & repository setup)
+* [@mklovak](https://github.com/mklovak) - secondary node 1 (`replicated_log_secondary_1` service)
+* [@vbarbanyagra](https://github.com/vbarbanyagra) - secondary node 2 (`replicated_log_secondary_2` service)
+
 ### Running
 
 > **Make sure to install [Docker Compose](https://docs.docker.com/compose/install/)**
