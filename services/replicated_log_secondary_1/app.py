@@ -1,6 +1,9 @@
-import asyncio
+from random import randint
+from time import sleep
 
+import asyncio
 import grpc
+
 from aiohttp import web
 from grpc.experimental.aio import init_grpc_aio
 
@@ -51,9 +54,10 @@ class Application(web.Application):
 class LogServicer(ReplicatedLogServicer):
     def ReplicateMessage(self, request, context):
         print(f"got message from Primary: {request.message}")
-        MESSAGES.append(request.message)
-        # time.sleep(5)  # Delays for 5 seconds.
-        return ReplicateMessageResponse(response=f"OK, {MESSAGES}")
+        delay = randint(5,30)
+        sleep(delay)
+        MESSAGES.append(request.message + " delay: " + str(delay))
+        return ReplicateMessageResponse(response=f"OK, {MESSAGES}, sleep delay was {delay} seconds")
 
 
 class GrpcServer:
