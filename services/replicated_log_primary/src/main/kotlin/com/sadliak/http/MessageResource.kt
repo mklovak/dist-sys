@@ -3,8 +3,6 @@ package com.sadliak.http
 import com.sadliak.dtos.AddMessageRequestDto
 import com.sadliak.dtos.AddMessageResponseDto
 import com.sadliak.dtos.ListMessagesResponseDto
-import com.sadliak.models.Message
-import com.sadliak.services.MessageReplicationService
 import com.sadliak.services.MessageService
 import com.sadliak.utils.buildResponse
 import javax.ws.rs.GET
@@ -15,7 +13,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("/api/v1/messages")
-class MessageResource(val messageService: MessageService, val messageReplicationService: MessageReplicationService) {
+class MessageResource(val messageService: MessageService) {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -28,10 +26,7 @@ class MessageResource(val messageService: MessageService, val messageReplication
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     fun addMessage(requestDto: AddMessageRequestDto): Response {
-        val message = Message(requestDto.message)
-
-        this.messageReplicationService.replicateMessage(message)
-        this.messageService.addMessage(message)
+        this.messageService.addMessage(requestDto)
 
         return buildResponse(Response.Status.OK, AddMessageResponseDto(Response.Status.OK.statusCode))
     }

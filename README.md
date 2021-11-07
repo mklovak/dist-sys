@@ -48,3 +48,18 @@ $ docker-compose up
 * `POST` request should be finished only after receiving ACKs from all Secondaries (**blocking replication approach**)
 * To test that the replication is blocking, a delay/sleep on Secondaries should be introduced
 * The communication channel is a **perfect link** (no failures and messages lost)
+
+### Iteration 2
+
+![iteration-2](assets/iteration-2.png)
+
+#### Properties & Assumptions
+
+* An additional write concern `w` POST request parameter should be defined to provide tunable replication
+  semi-synchronicity. This parameter should specify how many ACKs the Primary should receive from Secondaries before
+  responding to the client:
+    * w = 1 - ACK only from Primary, no ACKs from Secondaries
+    * w = 2 - ACK from Primary and 1 Secondary
+    * w = 3 - ACK from Primary and 2 Secondaries
+* An artificial delay should be introduced on Secondaries to emulate replicas inconsistency (and eventual consistency).
+  In this case, Primary and Secondary should temporarily return different messages lists.

@@ -6,7 +6,7 @@ import javax.enterprise.context.ApplicationScoped
 
 
 @ApplicationScoped
-class InMemoryMessageService : MessageService {
+class InMemoryMessageStorageService : MessageStorageService {
 
     private val messages: MutableList<Message> = Collections.synchronizedList(mutableListOf());
 
@@ -19,13 +19,6 @@ class InMemoryMessageService : MessageService {
     override fun listMessages(): List<Message> {
         synchronized(this) {
             return this.messages
-        }
-    }
-
-    // Needed only for tests.
-    fun clearMessages() {
-        synchronized(this) {
-            this.messages.clear()
         }
     }
 }
