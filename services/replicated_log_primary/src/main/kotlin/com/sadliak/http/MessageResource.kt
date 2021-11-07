@@ -4,6 +4,7 @@ import com.sadliak.dtos.AddMessageRequestDto
 import com.sadliak.dtos.AddMessageResponseDto
 import com.sadliak.dtos.ListMessagesResponseDto
 import com.sadliak.models.Message
+import com.sadliak.models.WriteConcern
 import com.sadliak.services.MessageReplicationService
 import com.sadliak.services.MessageService
 import com.sadliak.utils.buildResponse
@@ -29,9 +30,10 @@ class MessageResource(val messageService: MessageService, val messageReplication
     @Produces(MediaType.APPLICATION_JSON)
     fun addMessage(requestDto: AddMessageRequestDto): Response {
         val message = Message(requestDto.message)
+        val writeConcern = WriteConcern(requestDto.w)
 
-        this.messageReplicationService.replicateMessage(message)
         this.messageService.addMessage(message)
+        this.messageReplicationService.replicateMessage(message, writeConcern)
 
         return buildResponse(Response.Status.OK, AddMessageResponseDto(Response.Status.OK.statusCode))
     }
