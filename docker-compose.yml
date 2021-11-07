@@ -41,6 +41,9 @@ services:
       context: .
       dockerfile: services/replicated_log_secondary_2/Dockerfile
 
+    environment:
+      INSERT_DELAY: "30s"
+
     ports:
       - "8888:8080" # API
       - "8889:8081" # GRPC
