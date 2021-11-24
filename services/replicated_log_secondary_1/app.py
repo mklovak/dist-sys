@@ -1,8 +1,12 @@
 from random import randint
 from time import sleep
+from datetime import datetime
 
 import asyncio
 import grpc
+import random
+import json
+import uuid
 
 from aiohttp import web
 from grpc.experimental.aio import init_grpc_aio
@@ -11,13 +15,33 @@ from proto.replicated_log_pb2 import ReplicateMessageResponse
 from proto.replicated_log_pb2_grpc import ReplicatedLogServicer
 from proto.replicated_log_pb2_grpc import add_ReplicatedLogServicer_to_server
 
-""" List to store messages """
-MESSAGES = []
+""" Storage for messages """
+MESSAGES = {}
+LOG = {}
 
 
 class MessagesView(web.View):
     async def get(self):
-        return web.Response(text=str(MESSAGES))
+        SORTED_MESSAGES = []
+
+        sorted_message_ids = sorted(MESSAGES.keys())
+        prev_message_id = None
+        for message_id in sorted_message_ids:
+            if (prev_message_id is None) and (message_id == 0):
+                SORTED_MESSAGES.append(MESSAGES[message_id])
+                prev_message_id = message_id
+            elif (message_id - 1) == prev_message_id:
+                SORTED_MESSAGES.append(MESSAGES[message_id])
+                prev_message_id = message_id
+            else:
+                print(f"Message with id {message_id - 1} is missing")
+                break
+        return web.Response(text=str(SORTED_MESSAGES))
+
+
+class LogView(web.View):
+    async def get(self):
+        return web.Response(text=(json.dumps(LOG)))
 
 
 class Application(web.Application):
@@ -45,7 +69,8 @@ class Application(web.Application):
         return _on_shutdown
 
     def add_routes(self):
-        self.router.add_view('/messages', MessagesView)
+        self.router.add_view("/api/v1/messages", MessagesView)
+        self.router.add_view("/api/v1/logs", LogView)
 
     def run(self):
         return web.run_app(self, port=5000)
@@ -53,11 +78,45 @@ class Application(web.Application):
 
 class LogServicer(ReplicatedLogServicer):
     def ReplicateMessage(self, request, context):
-        print(f"got message from Primary: {request.message}")
-        delay = randint(5,30)
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"got message from Primary: {request.message} at {timestamp}")
+        message_id = int(request.messageId)
+
+        # random delay
+        delay = randint(1, 5)
         sleep(delay)
-        MESSAGES.append(request.message + " delay: " + str(delay))
-        return ReplicateMessageResponse(response=f"OK, {MESSAGES}, sleep delay was {delay} seconds")
+
+        # random internal server error
+        random_bit = random.getrandbits(1)
+        random_boolean = bool(random_bit)
+        if random_boolean is True:
+            LOG[str(uuid.uuid1())] = [
+                {"message_id": request.messageId},
+                {"message": request.message},
+                {"message_delay": f"{delay} sec"},
+                {"received_at": timestamp},
+                {"duplicated": "unknown"},
+                {"random_error": "True"}
+            ]
+            return ReplicateMessageResponse(response=f"internal server error")
+        else:
+            # check for duplicates
+            if message_id in MESSAGES:
+                print(f"Duplicated message with ID {message_id} received")
+                duplicated = "True"
+            else:
+                duplicated = "False"
+                MESSAGES[message_id] = request.message
+
+            LOG[str(uuid.uuid1())] = [
+                {"message_id": request.messageId},
+                {"message": request.message},
+                {"message_delay": f"{delay} sec"},
+                {"received_at": timestamp},
+                {"duplicated": duplicated},
+                {"random_error": "False"}
+            ]
+            return ReplicateMessageResponse(response=f"ok")
 
 
 class GrpcServer:
