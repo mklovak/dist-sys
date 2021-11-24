@@ -24,6 +24,7 @@ class MessagesView(web.View):
     async def get(self):
         SORTED_MESSAGES = []
 
+        # Total Order
         sorted_message_ids = sorted(MESSAGES.keys())
         prev_message_id = None
         for message_id in sorted_message_ids:
