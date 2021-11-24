@@ -25,7 +25,10 @@ class GrpcMessageReplicationService(private val replicationConfig: ReplicationCo
 
         try {
             val replicaClients = this.secondaryGrpcClients.entries
-            val replicationRequest = ReplicateMessageRequest.newBuilder().setMessage(message.text).build()
+            val replicationRequest = ReplicateMessageRequest.newBuilder()
+                    .setMessage(message.text)
+                    .setMessageId(message.id)
+                    .build()
 
             println("Replicating asynchronously to ${replicaClients.size} nodes")
             replicaClients.map { grpcClient ->

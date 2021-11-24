@@ -5,15 +5,17 @@ import com.sadliak.models.Message
 import com.sadliak.models.WriteConcern
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import javax.enterprise.context.ApplicationScoped
 
 
 @ApplicationScoped
 class MessageServiceImpl(val messageStorageService: MessageStorageService,
                          val messageReplicationService: MessageReplicationService) : MessageService {
+    private val counter = AtomicInteger(-1)
 
     override fun addMessage(requestDto: AddMessageRequestDto) {
-        val message = Message(requestDto.message)
+        val message = Message(counter.incrementAndGet().toLong(), requestDto.message)
         val writeConcern = WriteConcern(requestDto.w)
 
         val latch = CountDownLatch(writeConcern.value)

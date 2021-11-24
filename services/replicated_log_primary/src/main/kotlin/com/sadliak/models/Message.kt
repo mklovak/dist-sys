@@ -1,3 +1,3 @@
 package com.sadliak.models
 
-data class Message(val text: String)
+data class Message(val id: Long, val text: String)
