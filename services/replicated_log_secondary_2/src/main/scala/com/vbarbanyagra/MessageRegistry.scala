@@ -5,8 +5,9 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 import scala.collection.immutable
 
-final case class Message(message: String)
-final case class Messages(messages: immutable.Seq[Message])
+final case class Message(message: String, messageId: Long)
+final case class Messages(messages: immutable.Seq[Message],
+                          dirtyMessages: immutable.Seq[Message])
 
 object MessageRegistry {
   // actor protocol
@@ -17,13 +18,30 @@ object MessageRegistry {
 
   def apply(): Behavior[Command] = registry(Nil)
 
-  private def registry(users: Seq[Message]): Behavior[Command] =
+  private def untilFirstMissingId(messages: Seq[Message]): Seq[Message] =
+    messages
+      .zip(LazyList.from(0))
+      .takeWhile { case (message, i) =>
+        message.messageId == i
+      }
+      .map(_._1)
+
+  private def registry(sortedDistinctDirtyMessages: Seq[Message]): Behavior[Command] =
     Behaviors.receiveMessage {
       case GetMessages(replyTo) =>
-        replyTo ! Messages(users)
+        val visibleMessages = untilFirstMissingId(sortedDistinctDirtyMessages)
+        replyTo ! Messages(
+          messages = visibleMessages,
+          dirtyMessages = sortedDistinctDirtyMessages
+        )
         Behaviors.same
-      case AppendMessage(user, replyTo) =>
+
+      case AppendMessage(message, replyTo) =>
         replyTo ! ActionPerformed("ok")
-        registry(users :+ user)
+        registry(
+          (sortedDistinctDirtyMessages :+ message)
+            .distinctBy(_.messageId)
+            .sortBy(_.messageId)
+        )
     }
 }

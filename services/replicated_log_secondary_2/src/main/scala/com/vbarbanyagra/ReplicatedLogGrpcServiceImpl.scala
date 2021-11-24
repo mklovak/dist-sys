@@ -24,7 +24,7 @@ class ReplicatedLogGrpcServiceImpl(userRegistry: ActorRef[MessageRegistry.Comman
 
   def appendMessage(in: ReplicateMessageRequest): Future[ReplicateMessageResponse] = {
     after(insertDelay) {
-      userRegistry.ask(AppendMessage(Message(in.message), _))
+      userRegistry.ask(AppendMessage(Message(in.message, in.messageId), _))
         .map(action => ReplicateMessageResponse(action.description))
     }
   }

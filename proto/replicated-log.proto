@@ -13,7 +13,7 @@ service ReplicatedLog {
 
 message ReplicateMessageRequest {
   string message = 1;
-  string messageid = 2;
+  int64 messageId = 2; // aka `long`
 }
 
 message ReplicateMessageResponse {
