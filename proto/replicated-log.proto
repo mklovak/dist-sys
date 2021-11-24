@@ -13,6 +13,7 @@ service ReplicatedLog {
 
 message ReplicateMessageRequest {
   string message = 1;
+  string messageid = 2;
 }
 
 message ReplicateMessageResponse {
