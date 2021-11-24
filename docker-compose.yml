@@ -12,9 +12,12 @@ services:
       SECONDARY_1_ENABLED: "true"
       SECONDARY_1_HOST: host.docker.internal
       SECONDARY_1_PORT: 50052
+      SECONDARY_1_ID: "secondary-1"
+
       SECONDARY_2_ENABLED: "true"
       SECONDARY_2_HOST: host.docker.internal
       SECONDARY_2_PORT: 8889
+      SECONDARY_2_ID: "secondary-2"
 
     ports:
       - "9090:9090"
@@ -30,6 +33,11 @@ services:
       context: .
       dockerfile: services/replicated_log_secondary_1/Dockerfile
 
+    environment:
+      NODE_ID: "secondary-1"
+      PRIMARY_HOST: host.docker.internal
+      PRIMARY_PORT: ...
+
     ports:
       - "9091:5000"
       - "50052:50051"
@@ -42,7 +50,10 @@ services:
       dockerfile: services/replicated_log_secondary_2/Dockerfile
 
     environment:
+      NODE_ID: "secondary-2"
       INSERT_DELAY: "30s"
+      PRIMARY_HOST: host.docker.internal
+      PRIMARY_PORT: ...
 
     ports:
       - "8888:8080" # API

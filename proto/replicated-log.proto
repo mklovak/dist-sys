@@ -9,6 +9,7 @@ package replicated_log;
 
 service ReplicatedLog {
   rpc ReplicateMessage(ReplicateMessageRequest) returns (ReplicateMessageResponse) {}
+  rpc HeartBeat(HeartbeatRequest) returns (EmptyResponse) {}
 }
 
 message ReplicateMessageRequest {
@@ -18,4 +19,11 @@ message ReplicateMessageRequest {
 
 message ReplicateMessageResponse {
   string response = 1;
+}
+
+message HeartbeatRequest {
+  string nodeId = 1; // `secondary-1`
+}
+
+message EmptyResponse {
 }
