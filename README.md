@@ -63,3 +63,28 @@ $ docker-compose up
     * w = 3 - ACK from Primary and 2 Secondaries
 * An artificial delay should be introduced on Secondaries to emulate replicas inconsistency (and eventual consistency).
   In this case, Primary and Secondary should temporarily return different messages lists.
+* Guarantee the total ordering of messages (don't show later messages on secondaries if at least one previous was not
+  received) and do deduplication of messages on secondaries.
+
+### Iteration 3
+
+![iteration-3](assets/iteration-3.png)
+
+#### Properties & Assumptions
+
+* Main:
+    * Tunable semi-synchronicity for replication with a retry mechanism that should deliver all messages **exactly-once
+      in total order** should be implemented.
+    * All messages should be present exactly once in secondary nodes - **deduplication**.
+    * The order of messages must be the same in all nodes - **total order**.
+    * If message delivery fails (due to connection, or internal server error, or secondary is unavailable) the delivery
+      attempts should be repeated - **retries**. Retries could be infinite or have some **smart** logic.
+    * All messages that secondaries have missed due to unavailability should be replicated after (re)joining the
+      primary.
+* Additional:
+    * **Heartbeats** – implement a heartbeat mechanism to check secondaries’ health (status).
+        * Possible statuses: Healthy, Suspected, Unhealthy.
+        * They could help make your retries smarter.
+        * You should have an API on the primary to check secondaries’ – GET `/health` (`/api/v1/health`)
+    * **Quorum append** – If there is no quorum the primary should be switched into read-only mode and
+      shouldn’t accept message append requests and should return the appropriate message
