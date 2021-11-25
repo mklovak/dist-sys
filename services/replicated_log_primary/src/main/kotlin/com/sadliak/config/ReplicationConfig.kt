@@ -14,7 +14,7 @@ class ReplicationConfig {
 
     init {
         val regex = Regex("(SECONDARY_\\d+)_(ID|HOST|PORT|ENABLED)")
-        this.nodes = System.getenv().entries
+        val mappedNodes = System.getenv().entries
                 .map { (name, value) -> regex.matchEntire(name)?.groupValues to value }
                 .filter { (nameRegexGroups) -> nameRegexGroups != null }
                 .map { (nameRegexGroups, value) ->
@@ -40,6 +40,8 @@ class ReplicationConfig {
 
                     Node(id, isEnabled, host, port)
                 }
+
+        this.nodes = mappedNodes.values.associateBy { node -> node.id }
     }
 
     data class Node(val id: String, val isEnabled: Boolean, val host: String, val port: Int)

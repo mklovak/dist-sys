@@ -12,7 +12,7 @@ class GrpcResource(private val heartbeatService: HeartbeatService) : ReplicatedL
     }
 
     override fun heartBeat(request: HeartbeatRequest?): Uni<EmptyResponse> {
-        this.heartbeatService.record(request!!.nodeId, Instant.now())
+        this.heartbeatService.recordNodeHeartbeat(request!!.nodeId, Instant.now())
 
         return Uni.createFrom().item { EmptyResponse.newBuilder().build() };
     }
