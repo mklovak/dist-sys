@@ -13,7 +13,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("/api/v1/messages")
-class MessageResource(val messageService: MessageService) {
+class MessageResource(private val messageService: MessageService) {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

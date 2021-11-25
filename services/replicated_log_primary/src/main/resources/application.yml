@@ -1,7 +1,12 @@
 quarkus:
   # HTTP configuration.
   http:
-    port: ${PORT:9090}
+    port: ${HTTP_PORT:9090}
+
+  # GRPC configuration.
+  grpc:
+    server:
+      port: ${GRPC_PORT:9095}
 
   # OpenAPI configuration.
   smallrye-openapi:

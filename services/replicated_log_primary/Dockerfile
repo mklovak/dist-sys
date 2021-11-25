@@ -17,10 +17,12 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal:8.4
 
 ARG JAVA_PACKAGE=java-11-openjdk-headless
 ARG RUN_JAVA_VERSION=1.3.8
-ARG PORT=9090
+ARG HTTP_PORT=9090
+ARG GRPC_PORT=9095
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
-ENV PORT=$PORT
+ENV HTTP_PORT=$HTTP_PORT
+ENV GRPC_PORT=$GRPC_PORT
 
 # Install java and the run-java script
 # Also set up permissions for user `1001`
@@ -44,7 +46,8 @@ COPY --from=builder --chown=1001 /app/build/quarkus-app/*.jar /deployments/
 COPY --from=builder --chown=1001 /app/build/quarkus-app/app/ /deployments/app/
 COPY --from=builder --chown=1001 /app/build/quarkus-app/quarkus/ /deployments/quarkus/
 
-EXPOSE $PORT
+EXPOSE $HTTP_PORT
+EXPOSE $GRPC_PORT
 USER 1001
 
 ENTRYPOINT [ "/deployments/run-java.sh" ]

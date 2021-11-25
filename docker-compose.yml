@@ -6,7 +6,8 @@ services:
       context: .
       dockerfile: services/replicated_log_primary/Dockerfile
       args:
-        PORT: 9090
+        HTTP_PORT: 9090
+        GRPC_PORT: 9095
 
     environment:
       SECONDARY_1_ENABLED: "true"
@@ -20,7 +21,8 @@ services:
       SECONDARY_2_ID: "secondary-2"
 
     ports:
-      - "9090:9090"
+      - "9090:9090" # HTTP
+      - "9095:9095" # GRPC
 
     depends_on:
       - replicated_log_secondary_1
@@ -36,11 +38,11 @@ services:
     environment:
       NODE_ID: "secondary-1"
       PRIMARY_HOST: host.docker.internal
-      PRIMARY_PORT: ...
+      PRIMARY_PORT: 9095
 
     ports:
-      - "9091:5000"
-      - "50052:50051"
+      - "9091:5000" # HTTP
+      - "50052:50051" # GRPC
 
     restart: unless-stopped
 
@@ -53,10 +55,10 @@ services:
       NODE_ID: "secondary-2"
       INSERT_DELAY: "30s"
       PRIMARY_HOST: host.docker.internal
-      PRIMARY_PORT: ...
+      PRIMARY_PORT: 9095
 
     ports:
-      - "8888:8080" # API
+      - "8888:8080" # HTTP
       - "8889:8081" # GRPC
 
     restart: unless-stopped
