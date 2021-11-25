@@ -7,14 +7,22 @@ import javax.enterprise.context.ApplicationScoped
 @ApplicationScoped
 class ReplicationConfig {
     private val nodes: Map<String, Node>
+    private val shouldCheckQuorum: Boolean
 
     fun enabledNodes(): Map<String, Node> {
         return this.nodes.filter { it.value.isEnabled }
     }
 
+    fun shouldCheckQuorum(): Boolean {
+        return this.shouldCheckQuorum
+    }
+
     init {
+        val envVars = System.getenv()
+        shouldCheckQuorum = envVars["SHOULD_CHECK_QUORUM"].toBoolean()
+
         val regex = Regex("(SECONDARY_\\d+)_(ID|HOST|PORT|ENABLED)")
-        val mappedNodes = System.getenv().entries
+        val mappedNodes = envVars.entries
                 .map { (name, value) -> regex.matchEntire(name)?.groupValues to value }
                 .filter { (nameRegexGroups) -> nameRegexGroups != null }
                 .map { (nameRegexGroups, value) ->
