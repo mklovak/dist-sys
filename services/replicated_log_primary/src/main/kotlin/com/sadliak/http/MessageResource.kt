@@ -3,6 +3,8 @@ package com.sadliak.http
 import com.sadliak.dtos.AddMessageRequestDto
 import com.sadliak.dtos.AddMessageResponseDto
 import com.sadliak.dtos.ListMessagesResponseDto
+import com.sadliak.exceptions.AppException
+import com.sadliak.services.HeartbeatService
 import com.sadliak.services.MessageService
 import com.sadliak.utils.buildResponse
 import javax.ws.rs.GET
@@ -13,7 +15,8 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("/api/v1/messages")
-class MessageResource(private val messageService: MessageService) {
+class MessageResource(private val messageService: MessageService,
+                      private val heartbeatService: HeartbeatService) {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -26,6 +29,10 @@ class MessageResource(private val messageService: MessageService) {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     fun addMessage(requestDto: AddMessageRequestDto): Response {
+        if (this.heartbeatService.isQuorumLost()) {
+            throw AppException("Quorum has been lost")
+        }
+
         this.messageService.addMessage(requestDto)
 
         return buildResponse(Response.Status.OK, AddMessageResponseDto(Response.Status.OK.statusCode))

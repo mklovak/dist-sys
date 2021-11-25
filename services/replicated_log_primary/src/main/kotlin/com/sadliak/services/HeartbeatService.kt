@@ -7,4 +7,6 @@ interface HeartbeatService {
     fun recordNodeHeartbeat(nodeId: String, heartbeatReceivedTimestamp: Instant)
 
     fun getNodeStatus(nodeId: String): NodeStatus
+
+    fun isQuorumLost(): Boolean
 }
