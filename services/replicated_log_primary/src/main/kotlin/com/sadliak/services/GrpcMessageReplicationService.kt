@@ -33,26 +33,27 @@ class GrpcMessageReplicationService(private val replicationConfig: ReplicationCo
                     .setMessageId(message.id)
                     .build()
 
-            println("Replicating asynchronously to ${replicaClients.size} nodes")
             replicaClients.map { grpcClient ->
-                {
-                    val (initialBackoffDuration, maxBackoffDuration) = this.getRetryBackoffDurations(grpcClient.key)
-                    grpcClient.value.replicateMessage(replicationRequest)
-                            .onFailure().retry().withBackOff(initialBackoffDuration, maxBackoffDuration).withJitter(0.3).indefinitely()
-                            .onItem().invoke { r ->
-                                if (r.response != "ok") {
-                                    throw AppException("Response from replication was not 'ok'")
-                                }
-
-                                println("Successfully replicated to \"${grpcClient.key}\" node")
-                                latch.countDown()
+                val nodeId = grpcClient.key
+                val (initialBackoffDuration, maxBackoffDuration) = this.getRetryBackoffDurations(nodeId)
+                println("Replicating asynchronously to '$nodeId' node...")
+                println("Initial retry backoff - $initialBackoffDuration, max retry backoff - $maxBackoffDuration")
+                grpcClient.value.replicateMessage(replicationRequest)
+                        .onFailure().invoke { e -> println("Retrying because of an error during replication to '${nodeId}': ${e.message}") }
+                        .onFailure().retry().withBackOff(initialBackoffDuration, maxBackoffDuration).withJitter(0.3).indefinitely()
+                        .onItem().invoke { r ->
+                            if (r.response != "ok") {
+                                throw AppException("Response from replication was not 'ok'")
                             }
-                            .subscribe()
-                            .with(
-                                    { r -> println("Received response: ${r.response}") },
-                                    { err -> println("Received error: ${err.message}") }
-                            )
-                }
+
+                            println("Successfully replicated to '${nodeId}' node")
+                            latch.countDown()
+                        }
+                        .subscribe()
+                        .with(
+                                { r -> println("Received final response from '${nodeId}': ${r.response}") },
+                                { err -> println("Received final error from '${nodeId}': ${err.message}") }
+                        )
             }
         } catch (e: Throwable) {
             throw AppException("Error while replicating message to secondary nodes", cause = e)
@@ -66,8 +67,8 @@ class GrpcMessageReplicationService(private val replicationConfig: ReplicationCo
         val defaultMaxRetryBackoff = Duration.ofMinutes(5)
 
         val initialRetryBackoffMap = mapOf(
-                NodeStatus.UNHEALTHY to (Duration.ofSeconds(30)),
-                NodeStatus.SUSPECTED to Duration.ofSeconds(15),
+                NodeStatus.UNHEALTHY to (Duration.ofSeconds(15)),
+                NodeStatus.SUSPECTED to Duration.ofSeconds(5),
                 NodeStatus.HEALTHY to defaultInitialRetryBackoff
         )
 

@@ -19,7 +19,7 @@ services:
       SECONDARY_2_HOST: host.docker.internal
       SECONDARY_2_PORT: 8889
       SECONDARY_2_ID: "secondary-2"
-      SHOULD_CHECK_QUORUM: false
+      SHOULD_CHECK_QUORUM: "false"
 
     ports:
       - "9090:9090" # HTTP
