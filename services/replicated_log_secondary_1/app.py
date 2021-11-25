@@ -24,7 +24,6 @@ class MessagesView(web.View):
     async def get(self):
         SORTED_MESSAGES = []
 
-        # Total Order
         sorted_message_ids = sorted(MESSAGES.keys())
         prev_message_id = None
         for message_id in sorted_message_ids:
@@ -42,7 +41,7 @@ class MessagesView(web.View):
 
 class LogView(web.View):
     async def get(self):
-        return web.Response(text=(json.dumps(LOG)))
+        return web.Response(text=(json.dumps(LOG, indent=4)))
 
 
 class Application(web.Application):
@@ -99,7 +98,8 @@ class LogServicer(ReplicatedLogServicer):
                 {"duplicated": "unknown"},
                 {"random_error": "True"}
             ]
-            return ReplicateMessageResponse(response=f"internal server error")
+            raise Exception("Internal server error")
+
         else:
             # check for duplicates
             if message_id in MESSAGES:
