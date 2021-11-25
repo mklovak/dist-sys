@@ -14,6 +14,7 @@ import scala.concurrent.duration.FiniteDuration
 
 class ReplicatedLogGrpcServiceImpl(userRegistry: ActorRef[MessageRegistry.Command])
                                   (implicit mat: Materializer, system: ActorSystem[_]) extends ReplicatedLog {
+
   import mat.executionContext
 
   private implicit val timeout: Timeout =
@@ -26,6 +27,12 @@ class ReplicatedLogGrpcServiceImpl(userRegistry: ActorRef[MessageRegistry.Comman
     after(insertDelay) {
       userRegistry.ask(AppendMessage(Message(in.message, in.messageId), _))
         .map(action => ReplicateMessageResponse(action.description))
+    }
+  }
+
+  override def heartBeat(in: HeartbeatRequest): Future[EmptyResponse] = {
+    Future {
+      EmptyResponse()
     }
   }
 
