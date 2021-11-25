@@ -22,8 +22,8 @@ class MessageServiceImpl(val messageStorageService: MessageStorageService,
         addToStorage(message, latch)
         messageReplicationService.replicateMessage(message, writeConcern, latch)
 
-        // Wait at most 1 minute.
-        val replicationCompleted = latch.await(1, TimeUnit.MINUTES)
+        // Wait at most 1 week.
+        val replicationCompleted = latch.await(7, TimeUnit.DAYS)
         require(replicationCompleted) {
             "Timed out waiting for the replication to complete with write concern set to ${writeConcern.value}"
         }
