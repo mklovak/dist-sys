@@ -13,7 +13,7 @@ class ReplicationConfig {
     }
 
     init {
-        val regex = Regex("(SECONDARY_\\d+)_(HOST|PORT|ENABLED)")
+        val regex = Regex("(SECONDARY_\\d+)_(ID|HOST|PORT|ENABLED)")
         this.nodes = System.getenv().entries
                 .map { (name, value) -> regex.matchEntire(name)?.groupValues to value }
                 .filter { (nameRegexGroups) -> nameRegexGroups != null }
@@ -29,13 +29,18 @@ class ReplicationConfig {
                 .groupBy { (nodeName) -> nodeName }
                 .mapValues { (_, values) ->
                     val nodeProperties = values.map { it.second }
+                    val id = nodeProperties.find { it.property == "id" }?.value
                     val host = nodeProperties.find { it.property == "host" }?.value ?: "0.0.0.0"
                     val port = nodeProperties.find { it.property == "port" }?.value?.toIntOrNull() ?: -1
                     val isEnabled = nodeProperties.find { it.property == "enabled" }?.value?.toBoolean() ?: false
 
-                    Node(isEnabled, host, port)
+                    if (id == null) {
+                        throw RuntimeException("All secondary nodes should have ID env variable set (SECONDARY_X_ID)")
+                    }
+
+                    Node(id, isEnabled, host, port)
                 }
     }
 
-    data class Node(val isEnabled: Boolean, val host: String, val port: Int)
+    data class Node(val id: String, val isEnabled: Boolean, val host: String, val port: Int)
 }
