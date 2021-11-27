@@ -1,6 +1,7 @@
 package com.sadliak
 
 import com.sadliak.config.ReplicationConfig
+import io.quarkus.logging.Log
 import io.quarkus.runtime.Quarkus
 import io.quarkus.runtime.QuarkusApplication
 import io.quarkus.runtime.annotations.QuarkusMain
@@ -16,7 +17,7 @@ object Entrypoint {
         @Throws(Exception::class)
         override fun run(vararg args: String): Int {
             val nodes = replicationConfig.enabledNodes().map { "${it.key}(${it.value.host}:${it.value.port})" }
-            println("Configured secondary nodes: $nodes")
+            Log.info("Configured secondary nodes: $nodes")
 
             Quarkus.waitForExit()
             return 0

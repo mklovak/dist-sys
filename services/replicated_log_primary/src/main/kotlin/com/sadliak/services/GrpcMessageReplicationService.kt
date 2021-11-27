@@ -8,6 +8,7 @@ import com.sadliak.grpc.ReplicateMessageRequest
 import com.sadliak.models.Message
 import com.sadliak.models.WriteConcern
 import io.grpc.ManagedChannelBuilder
+import io.quarkus.logging.Log
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
 import javax.enterprise.context.ApplicationScoped
@@ -36,23 +37,23 @@ class GrpcMessageReplicationService(private val replicationConfig: ReplicationCo
             replicaClients.map { grpcClient ->
                 val nodeId = grpcClient.key
                 val (initialBackoffDuration, maxBackoffDuration) = this.getRetryBackoffDurations(nodeId)
-                println("Replicating asynchronously to '$nodeId' node...")
-                println("Initial retry backoff - $initialBackoffDuration, max retry backoff - $maxBackoffDuration")
+                Log.info("Replicating asynchronously to '$nodeId' node...")
+                Log.info("Initial retry backoff - $initialBackoffDuration, max retry backoff - $maxBackoffDuration")
                 grpcClient.value.replicateMessage(replicationRequest)
-                        .onFailure().invoke { e -> println("Retrying because of an error during replication to '${nodeId}': ${e.message}") }
+                        .onFailure().invoke { e -> Log.info("Retrying because of an error during replication to '${nodeId}': ${e.message}") }
                         .onFailure().retry().withBackOff(initialBackoffDuration, maxBackoffDuration).withJitter(0.3).indefinitely()
                         .onItem().invoke { r ->
                             if (r.response != "ok") {
                                 throw AppException("Response from replication was not 'ok'")
                             }
 
-                            println("Successfully replicated to '${nodeId}' node")
+                            Log.info("Successfully replicated to '${nodeId}' node")
                             latch.countDown()
                         }
                         .subscribe()
                         .with(
-                                { r -> println("Received final response from '${nodeId}': ${r.response}") },
-                                { err -> println("Received final error from '${nodeId}': ${err.message}") }
+                                { r -> Log.info("Received final response from '${nodeId}': ${r.response}") },
+                                { err -> Log.info("Received final error from '${nodeId}': ${err.message}") }
                         )
             }
         } catch (e: Throwable) {

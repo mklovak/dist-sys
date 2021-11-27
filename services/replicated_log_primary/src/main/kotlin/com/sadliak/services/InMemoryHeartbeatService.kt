@@ -1,6 +1,7 @@
 package com.sadliak.services
 
 import com.sadliak.enums.NodeStatus
+import io.quarkus.logging.Log
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
@@ -11,6 +12,7 @@ class InMemoryHeartbeatService : HeartbeatService {
     private val lastHeartbeats: MutableMap<String, Instant> = ConcurrentHashMap();
 
     override fun recordNodeHeartbeat(nodeId: String, heartbeatReceivedTimestamp: Instant) {
+        Log.info("Recorded heartbeat for '$nodeId' at $heartbeatReceivedTimestamp")
         lastHeartbeats[nodeId] = heartbeatReceivedTimestamp;
     }
 
