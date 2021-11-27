@@ -7,13 +7,17 @@ import grpc
 import random
 import json
 import uuid
+import os
 
 from aiohttp import web
 from grpc.experimental.aio import init_grpc_aio
 
 from proto.replicated_log_pb2 import ReplicateMessageResponse
+from proto.replicated_log_pb2 import HeartbeatRequest
+
 from proto.replicated_log_pb2_grpc import ReplicatedLogServicer
 from proto.replicated_log_pb2_grpc import add_ReplicatedLogServicer_to_server
+from proto.replicated_log_pb2_grpc import ReplicatedLogStub
 
 """ Storage for messages """
 MESSAGES = {}
@@ -55,8 +59,7 @@ class Application(web.Application):
 
     def __on_startup(self):
         async def _on_startup(app):
-            self.grpc_task = \
-                asyncio.ensure_future(app.grpc_server.start())
+            self.grpc_task = asyncio.ensure_future(app.grpc_server.start())
 
         return _on_startup
 
@@ -90,14 +93,14 @@ class LogServicer(ReplicatedLogServicer):
         random_bit = random.getrandbits(1)
         random_boolean = bool(random_bit)
         if random_boolean is True:
-            LOG[str(uuid.uuid1())] = [
-                {"message_id": request.messageId},
-                {"message": request.message},
-                {"message_delay": f"{delay} sec"},
-                {"received_at": timestamp},
-                {"duplicated": "unknown"},
-                {"random_error": "True"}
-            ]
+            LOG[str(uuid.uuid1())] = {
+                "message_id": request.messageId,
+                "message": request.message,
+                "message_delay": f"{delay} sec",
+                "received_at": timestamp,
+                "duplicated": "unknown",
+                "random_error": "True"
+            }
             raise Exception("Internal server error")
 
         else:
@@ -120,14 +123,34 @@ class LogServicer(ReplicatedLogServicer):
             return ReplicateMessageResponse(response=f"ok")
 
 
+# class HeartbeatServicer(ReplicatedLogStub):
+#
+#     # request = HeartbeatRequest().nodeId = "secondary-1"
+#     # response = heartbeat_stub.HeartBeat(request)
+#
+#     async def HeartbeatFunc(self):
+#         while True:
+#             try:
+#                 # request = call.HeartbeatPayload()
+#                 channel = grpc.insecure_channel('localhost:50051')
+#                 heartbeat_stub = ReplicatedLogStub(channel)
+#                 request = HeartbeatRequest().nodeId = "secondary-1"
+#                 # raise runtime error attached to a different loop
+#                 # response = await self.call(request)
+#                 response = heartbeat_stub.HeartBeat(request)
+#                 print(response)
+#                 await asyncio.sleep(30)
+#             except:
+#                 raise Exception("HeartbeatFunc. Something went wrong")
+
+
 class GrpcServer:
     def __init__(self):
+        self.loop = asyncio.get_event_loop()
         init_grpc_aio()
         self.server = grpc.experimental.aio.server()
         self.servicer = LogServicer()
-        add_ReplicatedLogServicer_to_server(
-            self.servicer,
-            self.server)
+        add_ReplicatedLogServicer_to_server(self.servicer, self.server)
         self.server.add_insecure_port("[::]:50051")
 
     async def start(self):
@@ -137,6 +160,25 @@ class GrpcServer:
     async def stop(self):
         await self.servicer.close()
         await self.server.wait_for_termination()
+
+    async def HeartbeatFunc(self, loop=None):
+        if loop is not None:
+            self.loop = loop
+        else:
+            pass
+        asyncio.create_task(self.HeartbeatFunc())
+        while True:
+            try:
+                print("Sending Heartbeat...")
+                primary_node_grpc_port = int(os.environ['GRPC_PORT'])
+                channel = grpc.insecure_channel(f'host.docker.internal:{primary_node_grpc_port}')
+                heartbeat_stub = ReplicatedLogStub(channel)
+                request = HeartbeatRequest().nodeId = os.environ['SECONDARY_1_ID']
+                response = heartbeat_stub.HeartBeat(request)
+                print(response)
+                await asyncio.sleep(10)
+            except:
+                raise Exception("HeartbeatFunc. Something went wrong")
 
 
 application = Application()
