@@ -61,11 +61,11 @@ class GrpcMessageReplicationService(private val replicationConfig: ReplicationCo
     }
 
     private fun getRetryBackoffDurations(nodeId: String): Pair<Duration, Duration> {
-        val nodeStatus = this.heartbeatService.getNodeStatus(nodeId)
+        val nodeInfo = this.heartbeatService.getNodeInfo(nodeId)
 
         val retryConfig = this.replicationConfig.retryConfig()
-        return retryConfig.initialBackoff().getOrDefault(nodeStatus, retryConfig.defaults().initialBackoff()) to
-                retryConfig.maxBackoff().getOrDefault(nodeStatus, retryConfig.defaults().maxBackoff())
+        return retryConfig.initialBackoff().getOrDefault(nodeInfo.status, retryConfig.defaults().initialBackoff()) to
+                retryConfig.maxBackoff().getOrDefault(nodeInfo.status, retryConfig.defaults().maxBackoff())
     }
 
     private fun buildGrpcClient(nodeConfig: ReplicationConfig.Node): MutinyReplicatedLogGrpc.MutinyReplicatedLogStub {

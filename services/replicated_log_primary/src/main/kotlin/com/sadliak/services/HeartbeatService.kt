@@ -1,12 +1,14 @@
 package com.sadliak.services
 
-import com.sadliak.enums.NodeStatus
+import com.sadliak.models.NodeInfo
 import java.time.Instant
 
 interface HeartbeatService {
     fun recordNodeHeartbeat(nodeId: String, heartbeatReceivedTimestamp: Instant)
 
-    fun getNodeStatus(nodeId: String): NodeStatus
+    fun getNodeInfo(nodeId: String): NodeInfo
 
-    fun isQuorumLost(): Boolean
+    fun getNodeInfos(): List<NodeInfo>
+
+    fun isNodeQuorumLost(): Boolean
 }

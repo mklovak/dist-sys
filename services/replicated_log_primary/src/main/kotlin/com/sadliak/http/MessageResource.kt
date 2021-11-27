@@ -31,8 +31,8 @@ class MessageResource(private val messageService: MessageService,
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     fun addMessage(requestDto: AddMessageRequestDto): Response {
-        if (this.replicationConfig.shouldCheckQuorum() && this.heartbeatService.isQuorumLost()) {
-            throw AppException("Quorum has been lost")
+        if (this.replicationConfig.shouldCheckQuorum() && this.heartbeatService.isNodeQuorumLost()) {
+            throw AppException("Node quorum has been lost")
         }
 
         this.messageService.addMessage(requestDto)
