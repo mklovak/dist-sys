@@ -1,11 +1,15 @@
 package com.sadliak.config
 
+import com.sadliak.enums.NodeStatus
 import io.quarkus.runtime.Startup
+import io.smallrye.config.ConfigMapping
+import java.time.Duration
 import javax.enterprise.context.ApplicationScoped
+
 
 @Startup
 @ApplicationScoped
-class ReplicationConfig {
+class ReplicationConfig(private val retries: RetryConfig) {
     private val nodes: Map<String, Node>
     private val shouldCheckQuorum: Boolean
 
@@ -15,6 +19,10 @@ class ReplicationConfig {
 
     fun shouldCheckQuorum(): Boolean {
         return this.shouldCheckQuorum
+    }
+
+    fun retryConfig(): RetryConfig {
+        return this.retries
     }
 
     init {
@@ -53,4 +61,16 @@ class ReplicationConfig {
     }
 
     data class Node(val id: String, val isEnabled: Boolean, val host: String, val port: Int)
+
+    @ConfigMapping(prefix = "replication.retries")
+    interface RetryConfig {
+        fun defaults(): Defaults
+        fun initialBackoff(): Map<NodeStatus, Duration>
+        fun maxBackoff(): Map<NodeStatus, Duration>
+
+        interface Defaults {
+            fun initialBackoff(): Duration
+            fun maxBackoff(): Duration
+        }
+    }
 }

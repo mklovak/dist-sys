@@ -1,7 +1,6 @@
 package com.sadliak.services
 
 import com.sadliak.config.ReplicationConfig
-import com.sadliak.enums.NodeStatus
 import com.sadliak.exceptions.AppException
 import com.sadliak.grpc.MutinyReplicatedLogGrpc
 import com.sadliak.grpc.ReplicateMessageRequest
@@ -62,25 +61,11 @@ class GrpcMessageReplicationService(private val replicationConfig: ReplicationCo
     }
 
     private fun getRetryBackoffDurations(nodeId: String): Pair<Duration, Duration> {
-        val nodeStatus = heartbeatService.getNodeStatus(nodeId)
+        val nodeStatus = this.heartbeatService.getNodeStatus(nodeId)
 
-        val defaultInitialRetryBackoff = Duration.ofSeconds(1)
-        val defaultMaxRetryBackoff = Duration.ofMinutes(5)
-
-        val initialRetryBackoffMap = mapOf(
-                NodeStatus.UNHEALTHY to (Duration.ofSeconds(15)),
-                NodeStatus.SUSPECTED to Duration.ofSeconds(5),
-                NodeStatus.HEALTHY to defaultInitialRetryBackoff
-        )
-
-        val maxRetryBackoffMap = mapOf(
-                NodeStatus.UNHEALTHY to Duration.ofMinutes(10),
-                NodeStatus.SUSPECTED to defaultMaxRetryBackoff,
-                NodeStatus.HEALTHY to defaultMaxRetryBackoff
-        )
-
-        return initialRetryBackoffMap.getOrDefault(nodeStatus, defaultInitialRetryBackoff) to
-                maxRetryBackoffMap.getOrDefault(nodeStatus, defaultMaxRetryBackoff)
+        val retryConfig = this.replicationConfig.retryConfig()
+        return retryConfig.initialBackoff().getOrDefault(nodeStatus, retryConfig.defaults().initialBackoff()) to
+                retryConfig.maxBackoff().getOrDefault(nodeStatus, retryConfig.defaults().maxBackoff())
     }
 
     private fun buildGrpcClient(nodeConfig: ReplicationConfig.Node): MutinyReplicatedLogGrpc.MutinyReplicatedLogStub {
