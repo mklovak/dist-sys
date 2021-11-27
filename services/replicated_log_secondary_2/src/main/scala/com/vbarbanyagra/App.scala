@@ -1,7 +1,10 @@
 package com.vbarbanyagra
 
+import akka.actor.TypedProps
 import akka.actor.typed.ActorSystem
+import akka.actor.Props
 import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.scaladsl.adapter.{ClassicActorRefOps, TypedActorContextOps}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import com.sadliak.grpc._
@@ -51,6 +54,8 @@ object App {
         val service = ReplicatedLogHandler(new ReplicatedLogGrpcServiceImpl(userRegistryActor))
         startServer(service, port = 8081, name = "GRPC")
       }
+
+      context.watch(context.actorOf(Props[HeartbeatActor], "HeartbeatActor").toTyped[HeartbeatActor])
 
       Behaviors.empty
     }

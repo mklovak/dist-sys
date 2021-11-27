@@ -24,8 +24,8 @@ lazy val root = (project in file(".")).
     )
 )
 
-// only server
-akkaGrpcGeneratedSources := Seq(AkkaGrpc.Server)
+// server & client
+akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server)
 
 inConfig(Compile)(Seq(
   // take protos from "replicated_log_secondary_2/../../proto" == "dist-sys/proto" for local development
