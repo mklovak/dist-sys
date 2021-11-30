@@ -90,14 +90,14 @@ class LogServicer(ReplicatedLogServicer):
         random_bit = random.getrandbits(1)
         random_boolean = bool(random_bit)
         if random_boolean is True:
-            LOG[str(uuid.uuid1())] = [
-                {"message_id": request.messageId},
-                {"message": request.message},
-                {"message_delay": f"{delay} sec"},
-                {"received_at": timestamp},
-                {"duplicated": "unknown"},
-                {"random_error": "True"}
-            ]
+            LOG[str(uuid.uuid1())] = {
+                "message_id": request.messageId,
+                "message": request.message,
+                "message_delay": f"{delay} sec",
+                "received_at": timestamp,
+                "duplicated": "unknown",
+                "random_error": "True"
+            }
             raise Exception("Internal server error")
 
         else:
@@ -109,14 +109,14 @@ class LogServicer(ReplicatedLogServicer):
                 duplicated = "False"
                 MESSAGES[message_id] = request.message
 
-            LOG[str(uuid.uuid1())] = [
-                {"message_id": request.messageId},
-                {"message": request.message},
-                {"message_delay": f"{delay} sec"},
-                {"received_at": timestamp},
-                {"duplicated": duplicated},
-                {"random_error": "False"}
-            ]
+            LOG[str(uuid.uuid1())] = {
+                "message_id": request.messageId,
+                "message": request.message,
+                "message_delay": f"{delay} sec",
+                "received_at": timestamp,
+                "duplicated": duplicated,
+                "random_error": "False"
+            }
             return ReplicateMessageResponse(response=f"ok")
 
 
