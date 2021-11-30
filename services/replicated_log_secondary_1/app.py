@@ -112,14 +112,14 @@ class LogServicer(ReplicatedLogServicer):
                 duplicated = "False"
                 MESSAGES[message_id] = request.message
 
-            LOG[str(uuid.uuid1())] = [
-                {"message_id": request.messageId},
-                {"message": request.message},
-                {"message_delay": f"{delay} sec"},
-                {"received_at": timestamp},
-                {"duplicated": duplicated},
-                {"random_error": "False"}
-            ]
+            LOG[str(uuid.uuid1())] = {
+                "message_id": request.messageId,
+                "message": request.message,
+                "message_delay": f"{delay} sec",
+                "received_at": timestamp,
+                "duplicated": duplicated,
+                "random_error": "False"
+            }
             return ReplicateMessageResponse(response=f"ok")
 
 
