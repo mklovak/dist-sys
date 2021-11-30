@@ -14,4 +14,4 @@ RUN pip install -r requirements.txt && \
     # Generate Protobuf and gRPC Python files.
     python -m grpc_tools.protoc -I=$APP_HOME --python_out=$APP_HOME --grpc_python_out=$APP_HOME $APP_HOME/proto/replicated-log.proto
 
-CMD python $APP_HOME/app.py
+CMD python -u $APP_HOME/app.py
