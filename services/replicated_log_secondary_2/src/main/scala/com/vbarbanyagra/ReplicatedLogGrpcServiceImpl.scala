@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 
-class ReplicatedLogGrpcServiceImpl(userRegistry: ActorRef[MessageRegistry.Command])
+class ReplicatedLogGrpcServiceImpl(messageRegistry: ActorRef[MessageRegistry.Command])
                                   (implicit mat: Materializer, system: ActorSystem[_]) extends ReplicatedLog {
 
   import mat.executionContext
@@ -25,7 +25,7 @@ class ReplicatedLogGrpcServiceImpl(userRegistry: ActorRef[MessageRegistry.Comman
 
   def appendMessage(in: ReplicateMessageRequest): Future[ReplicateMessageResponse] = {
     after(insertDelay) {
-      userRegistry.ask(AppendMessage(Message(in.message, in.messageId), _))
+      messageRegistry.ask(AppendMessage(Message(in.message, in.messageId), _))
         .map(action => ReplicateMessageResponse(action.description))
     }
   }

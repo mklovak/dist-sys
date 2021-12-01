@@ -57,7 +57,7 @@ services:
 
     environment:
       NODE_ID: "secondary-2"
-      INSERT_DELAY: "30s"
+      INSERT_DELAY: "3s"
       PRIMARY_HOST: host.docker.internal
       PRIMARY_PORT: 9095
 

@@ -9,7 +9,7 @@ import com.vbarbanyagra.MessageRegistry._
 
 import scala.concurrent.Future
 
-class UserRoutes(userRegistry: ActorRef[MessageRegistry.Command])(implicit val system: ActorSystem[_]) {
+class UserRoutes(messageRegistry: ActorRef[MessageRegistry.Command])(implicit val system: ActorSystem[_]) {
 
   import JsonFormats._
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
@@ -18,7 +18,7 @@ class UserRoutes(userRegistry: ActorRef[MessageRegistry.Command])(implicit val s
   private implicit val timeout = Timeout.create(system.settings.config.getDuration("my-app.routes.ask-timeout"))
 
   def getMessages: Future[Messages] =
-    userRegistry.ask(GetMessages)
+    messageRegistry.ask(GetMessages)
 
   val userRoutes: Route =
     concat(

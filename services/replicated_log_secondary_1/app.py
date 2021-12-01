@@ -7,17 +7,46 @@ import grpc
 import random
 import json
 import uuid
+import os
+import threading
+import logging
+import sys
+from collections import OrderedDict
+
+
+# https://stackoverflow.com/a/28194953
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
 
 from aiohttp import web
 from grpc.experimental.aio import init_grpc_aio
 
 from proto.replicated_log_pb2 import ReplicateMessageResponse
+from proto.replicated_log_pb2 import HeartbeatRequest
+from proto.replicated_log_pb2_grpc import ReplicatedLog
 from proto.replicated_log_pb2_grpc import ReplicatedLogServicer
 from proto.replicated_log_pb2_grpc import add_ReplicatedLogServicer_to_server
 
 """ Storage for messages """
 MESSAGES = {}
-LOG = {}
+LOG = OrderedDict()
+NODE_ID = os.environ["NODE_ID"]
+PRIMARY_HOST = os.environ["PRIMARY_HOST"]
+PRIMARY_PORT = int(os.environ["PRIMARY_PORT"])
+PRIMARY_TARGET = "{}:{}".format(PRIMARY_HOST, PRIMARY_PORT)
+
+
+def log(message, an_id=str(uuid.uuid1())):
+    LOG[an_id] = message
+    logging.info("Log #{}: {}".format(an_id, message))
+
+
+def get_first_missing_id():
+    first_missing = 0
+    while True:
+        if first_missing not in MESSAGES:
+            return first_missing
+        first_missing += 1
 
 
 class MessagesView(web.View):
@@ -90,14 +119,14 @@ class LogServicer(ReplicatedLogServicer):
         random_bit = random.getrandbits(1)
         random_boolean = bool(random_bit)
         if random_boolean is True:
-            LOG[str(uuid.uuid1())] = {
+            log({
                 "message_id": request.messageId,
                 "message": request.message,
                 "message_delay": f"{delay} sec",
                 "received_at": timestamp,
                 "duplicated": "unknown",
                 "random_error": "True"
-            }
+            })
             raise Exception("Internal server error")
 
         else:
@@ -109,14 +138,14 @@ class LogServicer(ReplicatedLogServicer):
                 duplicated = "False"
                 MESSAGES[message_id] = request.message
 
-            LOG[str(uuid.uuid1())] = {
+            log({
                 "message_id": request.messageId,
                 "message": request.message,
                 "message_delay": f"{delay} sec",
                 "received_at": timestamp,
                 "duplicated": duplicated,
                 "random_error": "False"
-            }
+            })
             return ReplicateMessageResponse(response=f"ok")
 
 
@@ -141,4 +170,14 @@ class GrpcServer:
 
 application = Application()
 if __name__ == '__main__':
+    def heartbeater():
+        while True:
+            first_missing_id = get_first_missing_id()
+            ReplicatedLog().HeartBeat(request=HeartbeatRequest(nodeId=NODE_ID, firstMissingId=get_first_missing_id()),
+                                      target=PRIMARY_TARGET,
+                                      insecure=True)  # turn off tls
+            log("Heartbeated, first missing is: {}".format(first_missing_id))
+            sleep(10)
+
+    threading.Thread(target=heartbeater).start()
     application.run()

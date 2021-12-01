@@ -8,12 +8,14 @@ import scala.collection.immutable
 final case class Message(message: String, messageId: Long)
 final case class Messages(messages: immutable.Seq[Message],
                           dirtyMessages: immutable.Seq[Message])
+final case class FirstMissingId(messageId: Long)
 
 object MessageRegistry {
   // actor protocol
   sealed trait Command
   final case class GetMessages(replyTo: ActorRef[Messages]) extends Command
   final case class AppendMessage(message: Message, replyTo: ActorRef[ActionPerformed]) extends Command
+  final case class GetFirstMissingId(replyTo: ActorRef[FirstMissingId]) extends Command
   final case class ActionPerformed(description: String)
 
   def apply(): Behavior[Command] = registry(Nil)
@@ -43,5 +45,10 @@ object MessageRegistry {
             .distinctBy(_.messageId)
             .sortBy(_.messageId)
         )
+
+      case GetFirstMissingId(replyTo) =>
+        val firstMissingId = sortedDistinctDirtyMessages.lastOption.map(_.messageId + 1).getOrElse(0L)
+        replyTo ! FirstMissingId(messageId = firstMissingId)
+        Behaviors.same
     }
 }

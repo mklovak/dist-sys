@@ -23,6 +23,7 @@ message ReplicateMessageResponse {
 
 message HeartbeatRequest {
   string nodeId = 1; // `secondary-1`
+  int64 firstMissingId = 2;
 }
 
 message EmptyResponse {

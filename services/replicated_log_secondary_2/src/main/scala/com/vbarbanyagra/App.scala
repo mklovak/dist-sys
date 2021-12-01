@@ -42,20 +42,21 @@ object App {
     val rootBehavior = Behaviors.setup[Nothing] { context =>
       implicit val sys = context.system
 
-      val userRegistryActor = context.spawn(MessageRegistry(), "UserRegistryActor")
-      context.watch(userRegistryActor)
+      val messageRegistryActor = context.spawn(MessageRegistry(), "MessageRegistryActor")
+      context.watch(messageRegistryActor)
 
       {
-        val routes = new UserRoutes(userRegistryActor)(context.system)
+        val routes = new UserRoutes(messageRegistryActor)(context.system)
         startServer(routes.userRoutes, port = 8080, name = "HTTP")
       }
 
       {
-        val service = ReplicatedLogHandler(new ReplicatedLogGrpcServiceImpl(userRegistryActor))
+        val service = ReplicatedLogHandler(new ReplicatedLogGrpcServiceImpl(messageRegistryActor))
         startServer(service, port = 8081, name = "GRPC")
       }
 
-      context.watch(context.actorOf(Props[HeartbeatActor], "HeartbeatActor").toTyped[HeartbeatActor])
+      context.watch(context.actorOf(Props.create(classOf[HeartbeatActor], messageRegistryActor), "HeartbeatActor")
+        .toTyped[HeartbeatActor])
 
       Behaviors.empty
     }
